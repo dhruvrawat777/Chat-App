@@ -1,5 +1,7 @@
 import 'package:Chat_App/services/auth.dart';
+import 'package:Chat_App/services/database.dart';
 import 'package:Chat_App/views/SignIn.dart';
+import 'package:Chat_App/views/chatRoomsScreen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -29,16 +31,25 @@ class _SignUpState extends State<SignUp> {
 
   bool isLoading = false;
   AuthMethods authMethods = AuthMethods();
-
+  DatabaseMethods databaseMethods = DatabaseMethods();
   signMeUp() {
     if (formKey.currentState.validate()) {
       setState(() {
         isLoading = true;
       });
       authMethods
-          .signInWithEmailAndPassword(_email.text, _password.text)
+          .signUpWithEmailAndPassword(_email.text, _password.text)
           .then((val) {
-        print(val);
+        Map<String, String> userInfoMap = {
+          'email': _email.text,
+          'name': _username.text,
+        };
+        databaseMethods.uploadUserInfo(userInfoMap);
+        Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) {
+            return ChatRoom();
+          },
+        ));
       });
     }
   }
