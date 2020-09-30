@@ -1,4 +1,5 @@
 import 'package:Chat_App/services/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -9,6 +10,37 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   TextEditingController _searchItem = TextEditingController();
   DatabaseMethods databaseMethods = DatabaseMethods();
+  QuerySnapshot searchSnapshot;
+  Widget searchList() {
+    return searchSnapshot != null
+        ? ListView.builder(
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return Result(
+                searchSnapshot.docs[index].data()['name'],
+                searchSnapshot.docs[index].data()['email'],
+              );
+            },
+            itemCount: searchSnapshot.docs.length,
+          )
+        : Center(
+            child: Text('Not found'),
+          );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  initiateSearch() {
+    databaseMethods.getUserByUsername(_searchItem.text).then((val) {
+      //print(val.toString());
+      setState(() {
+        searchSnapshot = val;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,64 +52,70 @@ class _SearchScreenState extends State<SearchScreen> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 15, horizontal: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(color: Colors.black),
-                  ),
-                  width: MediaQuery.of(context).size.width - 50,
-                  child: TextField(
-                    controller: _searchItem,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
+        child: Container(
+          height: MediaQuery.of(context).size.height - 500,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    margin: EdgeInsets.fromLTRB(5, 20, 0, 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: Colors.black),
+                    ),
+                    width: MediaQuery.of(context).size.width - 50,
+                    child: TextField(
+                      controller: _searchItem,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                        ),
+                        hintText: 'Username',
                       ),
-                      hintText: 'Username',
                     ),
                   ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    databaseMethods
-                        .getUserByUsername(_searchItem.text)
-                        .then((val) {
-                      print(val.toString());
-                    });
-                  },
-                  child: Icon(
-                    Icons.search,
-                    size: 30,
+                  Container(
+                    width: 20,
+                    height: 34,
+                    alignment: Alignment.bottomLeft,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.search,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        print('clicked');
+                        initiateSearch();
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Container(
-              alignment: Alignment.center,
-              child: Result(
-                username: 'dhruvrawat',
+                ],
               ),
-            ),
-          ],
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height - 200,
+                child: searchList(),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
+//}
 
-class Result extends StatelessWidget {
+/* class Result extends StatelessWidget {
   final String username;
-  Result({this.username});
+  final String email;
+  Result({this.username, this.email}); */
 
-  @override
-  Widget build(BuildContext context) {
+  Chatroom() {}
+
+  Widget Result(String username, String email) {
     return Container(
-      alignment: Alignment.center,
+      alignment: Alignment.topCenter,
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height - 230,
